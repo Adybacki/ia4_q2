@@ -74,6 +74,7 @@ fun Hangman(modifier: Modifier = Modifier) {
     val maxWrongGuesses = 6
     val context = LocalContext.current
 
+    //reset all saved game data
     fun resetGame() {
         selectedWord = words.random()
         guessedLetters = setOf()
@@ -83,12 +84,12 @@ fun Hangman(modifier: Modifier = Modifier) {
         showDialog = false
     }
 
+    //show dialog when game is won or lost
     LaunchedEffect(wrongGuesses, guessedLetters) {
         if (wrongGuesses >= maxWrongGuesses || selectedWord.all { it in guessedLetters }) {
             showDialog = true
         }
     }
-
     if (showDialog) {
         AlertDialog(
             onDismissRequest = {},
@@ -123,18 +124,22 @@ fun Hangman(modifier: Modifier = Modifier) {
                     )
 
                     HintPanel(modifier = Modifier.weight(1f), hintClicks, onHintClick = {
+                        //implement all hint rules
                         if (wrongGuesses >= maxWrongGuesses || (hintClicks > 0 && maxWrongGuesses - wrongGuesses == 1)) {
                             Toast.makeText(context, "Hint not available", Toast.LENGTH_SHORT).show()
                         } else {
                         if (hintClicks == 0) {
-                            var hint = wordsWithHints[selectedWord]
+                            //search for hint by hash index and display text hint
+                            val hint = wordsWithHints[selectedWord]
                             hintText = "Hint: $hint"
                         } else if (hintClicks == 1) {
+                            //disable half letters that arent in the word
                             val remainingLetters = ('A'..'Z').filter { it !in guessedLetters && it !in selectedWord }
                             val halfToDisable = remainingLetters.shuffled().take(remainingLetters.size / 2)
                             guessedLetters = guessedLetters + halfToDisable
                             wrongGuesses++
                         } else if (hintClicks == 2) {
+                            //show all vowels
                             val vowels = listOf('A', 'E', 'I', 'O', 'U')
                             guessedLetters = guessedLetters + vowels
                             wrongGuesses++
@@ -216,6 +221,7 @@ fun GamePanel(modifier: Modifier, word: String, guessedLetters: Set<Char>, wrong
     }
     Column(modifier = mod.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Button(onClick = onReset) { Text("New Game") }
+        //cycle through hangman images depending on num of wrong guesses
         val image = when (wrongGuesses) {
             0 -> R.drawable.h0
             1 -> R.drawable.h1
